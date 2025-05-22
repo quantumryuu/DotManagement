@@ -31,27 +31,27 @@
         if ($Overwrite) {
             $confirmation = Read-Host "WARNING: This will DELETE the existing '$localPath' folder and all its contents. Type 'YES' to confirm"
             if ($confirmation -ne 'YES') {
-                Write-Output "❌ Overwrite cancelled by user."
+                Write-Host "❌ Overwrite cancelled by user." -ForegroundColor Red
                 return
             }
             try {
                 Remove-Item -Path $localPath -Recurse -Force
-                Write-Output "🗑️ Existing folder '$localPath' deleted due to -Overwrite switch."
+                Write-Host "🗑️ Existing folder '$localPath' deleted due to -Overwrite switch."-ForegroundColor Green
             }
             catch {
-                Write-Error "❌ Failed to delete existing folder '$localPath': $_"
+                Write-Error "❌ Failed to delete existing folder '$localPath': $_" -ForegroundColor Red
                 return
             }
         }
         else {
-            Write-Output "⚠️ Directory $localPath already exists. Use -Overwrite to delete and recreate."
+            Write-Host "⚠️ Directory $localPath already exists. Use -Overwrite to delete and recreate." -ForegroundColor Yellow
             return
         }
     }
 
     # Create dotfiles folder
     New-Item -ItemType Directory -Path $localPath | Out-Null
-    Write-Output "📁 Created directory $localPath"
+    Write-Host "📁 Created directory $localPath" -ForegroundColor Green
 
     # Initialize git repo
     Push-Location $localPath
@@ -63,7 +63,7 @@
     git commit -m "Initial commit: Initialize dotfiles repo" | Out-Null
     Pop-Location
 
-    Write-Output "✅ Initialized new git repo and committed initial README.md"
+    Write-Host "✅ Initialized new git repo and committed initial README.md" -ForegroundColor Green
 
     # Create config JSON file using new structure
     $config = @{
@@ -72,5 +72,5 @@
     }
 
     $config | ConvertTo-Json -Depth 5 | Set-Content -Path $configPath -Encoding UTF8
-    Write-Output "📝 Config file created at $configPath"
+    Write-Host "📝 Config file created at $configPath" -ForegroundColor Green
 }

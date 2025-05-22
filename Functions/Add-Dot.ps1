@@ -15,12 +15,12 @@
     $configPath = Join-Path $dotfilesPath 'dotfiles.config.json'
 
     if (-not (Test-Path $dotfilesPath)) {
-        Write-Output "❌ Dotfiles repo folder not found. Please run Init-Dots first." -ForegroundColor Red
+        Write-Host "❌ Dotfiles repo folder not found. Please run Get-Dot first." -ForegroundColor Red
         return
     }
 
     if (-not (Test-Path $SourcePath)) {
-        Write-Output "❌ Source path '$SourcePath' does not exist." -ForegroundColor Red
+        Write-Host "❌ Source path '$SourcePath' does not exist." -ForegroundColor Red
         return
     }
 
@@ -49,7 +49,7 @@
                 $config = Get-Content $configPath -Raw | ConvertFrom-Json
             }
             catch {
-                Write-Output "❌ Failed to parse config JSON. $_" -ForegroundColor Red
+                Write-Host "❌ Failed to parse config JSON. $_" -ForegroundColor Red
                 return
             }
         }
@@ -67,8 +67,8 @@
         }
 
         if ($config.Files.ContainsKey($relativePath)) {
-            Write-Output "⚠️ The file/folder '$relativePath' already exists in dotfiles config." -ForegroundColor Yellow
-            Write-Output "Please use Remove-Dots to remove it before adding again."
+            Write-Host "⚠️ The file/folder '$relativePath' already exists in dotfiles config." -ForegroundColor Yellow
+            Write-Host "Please use Remove-Dots to remove it before adding again." -ForegroundColor Yellow
             return
         }
     }
@@ -81,10 +81,10 @@
 
     # If destination exists, ask to overwrite
     if (Test-Path $destPath) {
-        Write-Output "⚠️ '$relativePath' already exists in dotfiles repo. Overwrite? (Y/N)"
+        Write-Host "⚠️ '$relativePath' already exists in dotfiles repo. Overwrite? (Y/N)" -ForegroundColor Yellow
         $response = Read-Host
         if ($response -notin @('Y', 'y')) {
-            Write-Output "Operation cancelled by user."
+            Write-Host "Operation cancelled by user." -ForegroundColor Red
             return
         }
         Remove-Item -Recurse -Force $destPath
@@ -95,7 +95,7 @@
         Move-Item -Path $SourceFull -Destination $destPath -Force
     }
     catch {
-        Write-Output "❌ Failed to move '$SourceFull' to dotfiles repo. $_" -ForegroundColor Red
+        Write-Host "❌ Failed to move '$SourceFull' to dotfiles repo. $_" -ForegroundColor Red
         return
     }
 
@@ -123,11 +123,11 @@
         }
     }
     catch {
-        Write-Output "❌ Failed to create symlink. $_" -ForegroundColor Red
+        Write-Host "❌ Failed to create symlink. $_" -ForegroundColor Red
         return
     }
 
-    Write-Output "✅ Moved '$SourceFull' to dotfiles repo and linked back at original location."
+    Write-Host "✅ Moved '$SourceFull' to dotfiles repo and linked back at original location." -ForegroundColor Green
 
     # Reload config if not loaded
     if (-not $config) {
@@ -137,7 +137,7 @@
                 $config = Get-Content $configPath -Raw | ConvertFrom-Json
             }
             catch {
-                Write-Output "❌ Failed to parse config JSON. $_" -ForegroundColor Red
+                Write-Host "❌ Failed to parse config JSON. $_" -ForegroundColor Red
                 return
             }
         }
@@ -163,9 +163,9 @@
         $config | ConvertTo-Json -Depth 5 | Set-Content $configPath -Encoding UTF8
     }
     catch {
-        Write-Output "❌ Failed to save config JSON. $_" -ForegroundColor Red
+        Write-Host "❌ Failed to save config JSON. $_" -ForegroundColor Red
         return
     }
 
-    Write-Output "✅ Updated config file with new mapping."
+    Write-Host "✅ Updated config file with new mapping." -ForegroundColor Green
 }

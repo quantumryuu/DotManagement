@@ -21,34 +21,34 @@
 
     # Remove existing dotfiles folder if -Force is specified
     if ($Force -and (Test-Path $dotfilesPath)) {
-        Write-Output "🗑️ Removing existing dotfiles folder at $dotfilesPath due to -Force switch..."
+        Write-Host "🗑️ Removing existing dotfiles folder at $dotfilesPath due to -Force switch..." -ForegroundColor Yellow
         try {
             Remove-Item -Path $dotfilesPath -Recurse -Force -ErrorAction Stop
-            Write-Output "✅ Removed existing dotfiles folder."
+            Write-Host "✅ Removed existing dotfiles folder." -ForegroundColor Green
         }
         catch {
-            Write-Output "❌ Failed to remove dotfiles folder. $_"
+            Write-Host "❌ Failed to remove dotfiles folder. $_" -ForegroundColor Red
             return
         }
     }
 
     # Fail if dotfiles folder exists and -Force was not provided
     if (Test-Path $dotfilesPath) {
-        Write-Output "❌ Dotfiles folder already exists. Use -Force to overwrite it."
+        Write-Host "❌ Dotfiles folder already exists. Use -Force to overwrite it." -ForegroundColor Red
         return
     }
 
     # Clone repo
-    Write-Output "📥 Cloning $repoUrl into $dotfilesPath..."
+    Write-Host "📥 Cloning $repoUrl into $dotfilesPath..." -ForegroundColor Yellow
     git clone $repoUrl $dotfilesPath
     if ($LASTEXITCODE -ne 0) {
-        Write-Output "❌ Git clone failed."
+        Write-Host "❌ Git clone failed." -ForegroundColor Red
         return
     }
 
     # Load config
     if (-not (Test-Path $configPath)) {
-        Write-Output "❌ Config file not found at $configPath."
+        Write-Host "❌ Config file not found at $configPath." -ForegroundColor Red
         return
     }
 
@@ -56,12 +56,12 @@
         $config = Get-Content $configPath -Raw | ConvertFrom-Json
     }
     catch {
-        Write-Output "❌ Failed to parse config JSON. $_"
+        Write-Host "❌ Failed to parse config JSON. $_" -ForegroundColor Red
         return
     }
 
     if (-not $config.Files) {
-        Write-Output "⚠️ No files mapped in config."
+        Write-Host "⚠️ No files mapped in config." -ForegroundColor Yellow
         return
     }
 
@@ -103,10 +103,10 @@
                 $backupDest = Join-Path $backupStaging ([IO.Path]::GetFileName($linkPathResolved))
                 try {
                     Copy-Item $linkPathResolved -Destination $backupDest -Recurse -Force
-                    Write-Output "📦 Backed up $linkPathResolved"
+                    Write-Host "📦 Backed up $linkPathResolved" -ForegroundColor Green
                 }
                 catch {
-                    Write-Output "❌ Failed to backup $linkPathResolved"
+                    Write-Host "❌ Failed to backup $linkPathResolved" -ForegroundColor Red
                     continue
                 }
             }
@@ -122,10 +122,10 @@
         # Create symlink
         try {
             New-Item -ItemType SymbolicLink -Path $linkPathResolved -Target $dotfileFullPath -Force | Out-Null
-            Write-Output "✅ Linked '$linkPathResolved' -> '$dotfileFullPath'"
+            Write-Host "✅ Linked '$linkPathResolved'" -ForegroundColor Green
         }
         catch {
-            Write-Output "❌ Failed to link '$linkPathResolved'. $_"
+            Write-Host "❌ Failed to link '$linkPathResolved'. $_" -ForegroundColor Red
         }
     }
 
@@ -133,10 +133,10 @@
     if ((Get-ChildItem $backupStaging).Count -gt 0) {
         Compress-Archive -Path "$backupStaging\*" -DestinationPath $backupZip -Force
         Remove-Item $backupStaging -Recurse -Force
-        Write-Output "📦 Backup saved to $backupZip"
+        Write-Host "📦 Backup saved to $backupZip" -ForegroundColor Green
     }
     else {
         Remove-Item $backupStaging -Recurse -Force
-        Write-Output "🧹 No backups needed."
+        Write-Host "🧹 No backups needed." -ForegroundColor Green
     }
 }
