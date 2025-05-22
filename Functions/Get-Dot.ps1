@@ -40,7 +40,7 @@
 
     # Clone repo
     Write-Host "📥 Cloning $repoUrl into $dotfilesPath..." -ForegroundColor Yellow
-    git clone $repoUrl $dotfilesPath
+    git clone $repoUrl $dotfilesPath 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ Git clone failed." -ForegroundColor Red
         return
