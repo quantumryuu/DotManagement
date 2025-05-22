@@ -6,7 +6,12 @@
 
         [switch]$Force
     )
-
+    # Ensure the script is run as Administrator
+    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+                [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Host "❌ This script must be run as Administrator to create symlinks." -ForegroundColor Red
+        return
+    }
     $homePath = [Environment]::GetFolderPath('UserProfile')
     $dotfilesPath = Join-Path $homePath 'dotfiles'
     $configPath = Join-Path $dotfilesPath 'dotfiles.config.json'
@@ -101,7 +106,7 @@
     # Confirm destructive action
     if (-not $Force) {
         $confirm = Read-Host "Are you sure you want to remove the symlink and restore the original file? (Y/N)"
-        if ($confirm -notin @('Y','y')) {
+        if ($confirm -notin @('Y', 'y')) {
             Write-Output "Operation cancelled by user."
             return
         }

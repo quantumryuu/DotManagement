@@ -5,7 +5,12 @@
 
         [switch]$Force
     )
-
+    # Ensure the script is run as Administrator
+    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+                [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Host "❌ This script must be run as Administrator to create symlinks." -ForegroundColor Red
+        return
+    }
     $homePath = [Environment]::GetFolderPath('UserProfile')
     $dotfilesPath = Join-Path $homePath 'dotfiles'
     $configPath = Join-Path $dotfilesPath 'dotfiles.config.json'
@@ -20,7 +25,8 @@
         try {
             Remove-Item -Path $dotfilesPath -Recurse -Force -ErrorAction Stop
             Write-Output "✅ Removed existing dotfiles folder."
-        } catch {
+        }
+        catch {
             Write-Output "❌ Failed to remove dotfiles folder. $_"
             return
         }
@@ -48,7 +54,8 @@
 
     try {
         $config = Get-Content $configPath -Raw | ConvertFrom-Json
-    } catch {
+    }
+    catch {
         Write-Output "❌ Failed to parse config JSON. $_"
         return
     }
@@ -82,7 +89,8 @@
 
         $linkPathResolved = if ($linkPath -like '$HOME*') {
             Join-Path $homePath $linkPath.Substring(5).TrimStart('\', '/')
-        } else {
+        }
+        else {
             $linkPath
         }
 
@@ -96,13 +104,15 @@
                 try {
                     Copy-Item $linkPathResolved -Destination $backupDest -Recurse -Force
                     Write-Output "📦 Backed up $linkPathResolved"
-                } catch {
+                }
+                catch {
                     Write-Output "❌ Failed to backup $linkPathResolved"
                     continue
                 }
             }
             Remove-Item $linkPathResolved -Force -Recurse
-        } else {
+        }
+        else {
             $parentDir = Split-Path -Parent $linkPathResolved
             if (-not (Test-Path $parentDir)) {
                 New-Item -Path $parentDir -ItemType Directory -Force | Out-Null
@@ -113,7 +123,8 @@
         try {
             New-Item -ItemType SymbolicLink -Path $linkPathResolved -Target $dotfileFullPath -Force | Out-Null
             Write-Output "✅ Linked '$linkPathResolved' -> '$dotfileFullPath'"
-        } catch {
+        }
+        catch {
             Write-Output "❌ Failed to link '$linkPathResolved'. $_"
         }
     }
@@ -123,7 +134,8 @@
         Compress-Archive -Path "$backupStaging\*" -DestinationPath $backupZip -Force
         Remove-Item $backupStaging -Recurse -Force
         Write-Output "📦 Backup saved to $backupZip"
-    } else {
+    }
+    else {
         Remove-Item $backupStaging -Recurse -Force
         Write-Output "🧹 No backups needed."
     }

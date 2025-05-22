@@ -2,6 +2,12 @@
     param(
         [string]$CommitMessage = $("Update dotfiles " + (Get-Date -Format 'yyyy-MM-dd'))
     )
+    # Ensure the script is run as Administrator
+    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+                [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Host "❌ This script must be run as Administrator to create symlinks." -ForegroundColor Red
+        return
+    }
     $homePath = [Environment]::GetFolderPath('UserProfile')
     $localPath = Join-Path $homePath 'dotfiles'
     $configPath = Join-Path $localPath 'dotfiles.config.json'

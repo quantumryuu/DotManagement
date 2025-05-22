@@ -3,9 +3,14 @@
         [string]$Repo,
         [switch]$Overwrite
     )
-
-    $homePath   = [Environment]::GetFolderPath('UserProfile')
-    $localPath  = Join-Path $homePath 'dotfiles'
+    # Ensure the script is run as Administrator
+    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+                [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Host "❌ This script must be run as Administrator to create symlinks." -ForegroundColor Red
+        return
+    }
+    $homePath = [Environment]::GetFolderPath('UserProfile')
+    $localPath = Join-Path $homePath 'dotfiles'
     $configPath = Join-Path $localPath 'dotfiles.config.json'
 
     # Prompt if repo not supplied
@@ -16,7 +21,8 @@
     # Build repo URL for config
     if ($Repo -match '^https?://|^git@') {
         $repoUrl = $Repo
-    } else {
+    }
+    else {
         $repoUrl = "https://github.com/$Repo/dotfiles.git"
     }
 
@@ -31,11 +37,13 @@
             try {
                 Remove-Item -Path $localPath -Recurse -Force
                 Write-Output "🗑️ Existing folder '$localPath' deleted due to -Overwrite switch."
-            } catch {
+            }
+            catch {
                 Write-Error "❌ Failed to delete existing folder '$localPath': $_"
                 return
             }
-        } else {
+        }
+        else {
             Write-Output "⚠️ Directory $localPath already exists. Use -Overwrite to delete and recreate."
             return
         }

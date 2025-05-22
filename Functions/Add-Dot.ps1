@@ -3,7 +3,12 @@
         [Parameter(Mandatory = $true, Position = 0)]
         [string]$SourcePath
     )
-
+    # Ensure the script is run as Administrator
+    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+                [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Host "❌ This script must be run as Administrator to create symlinks." -ForegroundColor Red
+        return
+    }
     # Get robust current user home path
     $homePath = [Environment]::GetFolderPath('UserProfile')
     $dotfilesPath = Join-Path $homePath 'dotfiles'
